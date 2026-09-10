@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscador de Receitas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topo">
+    <h1>Caderno de Receitas</h1>
+    <p class="subtitulo">Digite um prato ou ingrediente e veja detalhes sobre ele!</p>
+  </header>
+
+  <main>
+    <form id="form-busca" class="busca" autocomplete="off">
+      <label for="campo-prato">Nome do prato</label>
+      <div class="linha-busca">
+        <input
+          type="text"
+          id="campo-prato"
+          name="prato"
+          placeholder="ex: chicken, arrabiata, curry…"
+          required
+        >
+        <button type="submit" id="botao-buscar">Buscar</button>
+        <button type="button" id="botao-aleatorio" title="Sugerir um prato ao acaso">Aleatório</button>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </form>
+
+    <div class="conteudo">
+      <section id="lista-resultados" class="lista-resultados" aria-label="Resultados da busca"></section>
+      <section id="detalhe" class="detalhe" aria-live="polite">
+      </section>
+    </div>
+  </main>
+
+  <footer class="rodape">
+    <p>Dados e imagens: <a href="https://www.themealdb.com/" target="_blank" rel="noopener">TheMealDB API</a></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
