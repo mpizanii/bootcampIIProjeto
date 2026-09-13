@@ -1,0 +1,356 @@
+:root {
+  --fundo: #241912;
+  --fundo-alto: #2f2118;
+  --cartao: #fbf3e7;
+  --tinta: #241912;
+  --tinta-suave: #8a7a6b;
+  --creme: #fbf3e7;
+  --tomate: #d64933;
+  --tomate-escuro: #ab3524;
+  --louro: #6b8f47;
+  --borda: #e7d9c3;
+  --sombra: 0 14px 34px rgba(18, 12, 7, 0.35);
+  --raio: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(214, 73, 51, 0.16), transparent 42%),
+    radial-gradient(circle at 88% 92%, rgba(107, 143, 71, 0.14), transparent 45%),
+    var(--fundo);
+  color: var(--creme);
+  font-family: "Inter", system-ui, sans-serif;
+  line-height: 1.55;
+  padding: 0 1.25rem 4rem;
+}
+
+a {
+  color: #f0b35c;
+}
+
+.topo {
+  max-width: 680px;
+  margin: 0 auto;
+  padding-top: 3.5rem;
+  text-align: center;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  color: #f0b35c;
+  font-weight: 700;
+  margin: 0 0 0.6rem;
+}
+
+.topo h1 {
+  font-family: "DM Serif Display", serif;
+  font-weight: 400;
+  font-size: clamp(2.3rem, 5.5vw, 3.4rem);
+  margin: 0 0 0.75rem;
+}
+
+.subtitulo {
+  color: #d8c8b6;
+  font-size: 1.02rem;
+  margin: 0;
+}
+
+.busca {
+  max-width: 640px;
+  margin: 2.25rem auto 0;
+}
+
+.busca label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  color: #d8c8b6;
+}
+
+.linha-busca {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+#campo-prato {
+  flex: 1;
+  min-width: 180px;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1.5px solid transparent;
+  border-radius: var(--raio);
+  background: var(--cartao);
+  color: var(--tinta);
+}
+
+#campo-prato:focus-visible {
+  outline: 3px solid var(--tomate);
+  outline-offset: 1px;
+}
+
+#botao-buscar,
+#botao-aleatorio {
+  padding: 0.85rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  border: none;
+  border-radius: var(--raio);
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+#botao-buscar {
+  color: var(--creme);
+  background: var(--tomate);
+}
+
+#botao-aleatorio {
+  color: var(--tinta);
+  background: var(--creme);
+}
+
+#botao-buscar:hover,
+#botao-aleatorio:hover {
+  filter: brightness(1.08);
+}
+
+#botao-buscar:active,
+#botao-aleatorio:active {
+  transform: translateY(1px);
+}
+
+#botao-buscar:disabled,
+#botao-aleatorio:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+#botao-buscar:focus-visible,
+#botao-aleatorio:focus-visible {
+  outline: 3px solid var(--louro);
+  outline-offset: 2px;
+}
+
+.status {
+  font-size: 0.85rem;
+  color: #d8c8b6;
+  margin: 0.65rem 0 0;
+  min-height: 1.2em;
+}
+
+.status.erro {
+  color: #ff9d85;
+}
+
+.conteudo {
+  max-width: 980px;
+  margin: 2rem auto 0;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .conteudo {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lista-resultados {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.card-resultado {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: var(--fundo-alto);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  padding: 0.5rem;
+  cursor: pointer;
+  text-align: left;
+  color: var(--creme);
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.card-resultado img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.card-resultado .nome {
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.card-resultado .categoria {
+  font-size: 0.75rem;
+  color: #b9ab9b;
+}
+
+.card-resultado:hover,
+.card-resultado:focus-visible {
+  border-color: var(--tomate);
+  outline: none;
+}
+
+.card-resultado.selecionado {
+  border-color: var(--louro);
+  background: #34281c;
+}
+
+.estado-vazio {
+  color: #b9ab9b;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.receita {
+  background: var(--cartao);
+  color: var(--tinta);
+  border-radius: var(--raio);
+  overflow: hidden;
+  box-shadow: var(--sombra);
+  animation: aparecer 0.25s ease;
+}
+
+.receita .capa {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.receita .miolo {
+  padding: 1.5rem;
+}
+
+.receita h2 {
+  font-family: "DM Serif Display", serif;
+  font-weight: 400;
+  font-size: 1.7rem;
+  margin: 0 0 0.4rem;
+}
+
+.etiquetas {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.1rem;
+}
+
+.etiqueta {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(107, 143, 71, 0.15);
+  color: var(--louro);
+}
+
+.etiqueta.origem {
+  background: rgba(214, 73, 51, 0.12);
+  color: var(--tomate-escuro);
+}
+
+.receita h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tinta-suave);
+  margin: 1.3rem 0 0.6rem;
+}
+
+.lista-ingredientes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.4rem 1rem;
+}
+
+.lista-ingredientes li {
+  font-size: 0.9rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px dashed var(--borda);
+}
+
+.lista-ingredientes li strong {
+  color: var(--tomate-escuro);
+}
+
+.instrucoes {
+  white-space: pre-line;
+  font-size: 0.95rem;
+  color: var(--tinta);
+}
+
+.link-youtube {
+  display: inline-block;
+  margin-top: 1.2rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  background: var(--tinta);
+  color: var(--creme);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.link-youtube:hover {
+  filter: brightness(1.15);
+}
+
+.mensagem {
+  text-align: center;
+  padding: 2rem 1rem;
+  border-radius: var(--raio);
+  border: 1.5px dashed var(--borda);
+  color: #b9ab9b;
+}
+
+.mensagem.erro {
+  color: #ff9d85;
+  border-color: #ff9d85;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .receita {
+    animation: none;
+  }
+}
+
+.rodape {
+  max-width: 640px;
+  margin: 3rem auto 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #b9ab9b;
+}
