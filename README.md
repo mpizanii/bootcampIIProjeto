@@ -25,3 +25,6 @@ prato aleatório.
 1. Clone o repositório: `git clone https://github.com/mpizanii/bootcampIIProjeto.git`
 2. Abra o arquivo `index.html` no navegador (use a extensão Live Server do VS Code)
 
+# Links
+1. Repositorio Público: https://github.com/mpizanii/bootcampIIProjeto
+2. Github Pages: https://mpizanii.github.io/bootcampIIProjeto/
