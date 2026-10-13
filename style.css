@@ -63,6 +63,116 @@ a {
   margin: 0;
 }
 
+.autenticacao {
+  max-width: 420px;
+  margin: 2rem auto 0;
+  padding: 1.4rem;
+  border: 1px solid rgba(231, 217, 195, 0.25);
+  border-radius: var(--raio);
+  background: rgba(47, 33, 24, 0.88);
+  box-shadow: var(--sombra);
+}
+
+.autenticacao h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 400;
+}
+
+.auth-descricao {
+  color: #d8c8b6;
+  font-size: 0.88rem;
+  margin: 0.35rem 0 1.1rem;
+}
+
+.form-auth {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.form-auth label {
+  color: #d8c8b6;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.form-auth input {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  background: var(--cartao);
+  color: var(--tinta);
+  font: inherit;
+}
+
+.form-auth input:focus-visible {
+  outline: 3px solid var(--tomate);
+  outline-offset: 1px;
+}
+
+#botao-auth,
+.botao-secundario {
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--tomate);
+  color: var(--creme);
+  cursor: pointer;
+  font: 700 0.95rem "Roboto", sans-serif;
+  margin-top: 0.45rem;
+}
+
+#botao-auth:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.botao-link {
+  display: block;
+  margin: 0.9rem auto 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #f0b35c;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.auth-status {
+  min-height: 1.3em;
+  margin: 0.2rem 0 0;
+  color: #b9d893;
+  font-size: 0.83rem;
+  text-align: center;
+}
+
+.auth-status.erro {
+  color: #ff9d85;
+}
+
+.auth-conectado {
+  align-items: center;
+  display: flex;
+  gap: 0.8rem;
+  justify-content: space-between;
+}
+
+.auth-conectado p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+}
+
+.auth-conectado .botao-secundario {
+  flex-shrink: 0;
+  margin: 0;
+  background: var(--creme);
+  color: var(--tinta);
+}
+
 .busca {
   max-width: 640px;
   margin: 2.25rem auto 0;
