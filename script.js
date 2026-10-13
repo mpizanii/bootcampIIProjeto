@@ -7,6 +7,8 @@ const botaoAleatorio = document.getElementById("botao-aleatorio");
 const statusEl = document.getElementById("status");
 const listaResultadosEl = document.getElementById("lista-resultados");
 const detalheEl = document.getElementById("detalhe");
+const listaFavoritosEl = document.getElementById("lista-favoritos");
+const statusFavoritosEl = document.getElementById("status-favoritos");
 
 // Autenticação
 const SUPABASE_URL = "https://mkvgrqpytfynaevqkhhz.supabase.co";
@@ -16,6 +18,8 @@ const clienteSupabase = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
+let usuarioAtual = null;
+let idsFavoritos = new Set();
 
 const formAuth = document.getElementById("form-auth");
 if (formAuth) {
@@ -139,6 +143,89 @@ async function buscarAleatoria() {
   return dados.meals;
 }
 
+async function buscarPorId(id) {
+  const resposta = await fetch(`${BASE_URL}/lookup.php?i=${encodeURIComponent(id)}`);
+  if (!resposta.ok) throw new Error("A API respondeu com erro");
+  const dados = await resposta.json();
+  return dados.meals?.[0];
+}
+
+async function carregarFavoritos() {
+  if (!listaFavoritosEl || !usuarioAtual) return;
+  statusFavoritosEl.textContent = "Carregando favoritos…";
+  const { data, error } = await clienteSupabase
+    .from("favorites")
+    .select("id, meal_id, meal_name, meal_thumb")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    statusFavoritosEl.textContent = "Não foi possível carregar seus favoritos.";
+    console.error("Falha ao carregar favoritos:", error);
+    return;
+  }
+
+  idsFavoritos = new Set(data.map((favorito) => favorito.meal_id));
+  statusFavoritosEl.textContent = data.length
+    ? `${data.length} receita(s) favorita(s).`
+    : "Você ainda não favoritou nenhuma receita.";
+  listaFavoritosEl.innerHTML = data
+    .map(
+      (favorito) => `
+        <article class="card-favorito">
+          <button type="button" class="abrir-favorito" data-meal-id="${favorito.meal_id}">
+            <img src="${favorito.meal_thumb}" alt="" loading="lazy">
+            <span>${favorito.meal_name}</span>
+          </button>
+          <button type="button" class="remover-favorito" data-meal-id="${favorito.meal_id}" aria-label="Remover ${favorito.meal_name} dos favoritos">×</button>
+        </article>
+      `
+    )
+    .join("");
+}
+
+async function alternarFavorito(receita, botao) {
+  if (!usuarioAtual) {
+    botao.textContent = "Faça login para favoritar";
+    return;
+  }
+
+  botao.disabled = true;
+  const favorito = idsFavoritos.has(receita.idMeal);
+  const resultado = favorito
+    ? await clienteSupabase
+        .from("favorites")
+        .delete()
+        .eq("meal_id", receita.idMeal)
+    : await clienteSupabase.from("favorites").insert({
+        user_id: usuarioAtual.id,
+        meal_id: receita.idMeal,
+        meal_name: receita.strMeal,
+        meal_thumb: receita.strMealThumb,
+      });
+
+  botao.disabled = false;
+  if (resultado.error) {
+    botao.textContent = "Não foi possível atualizar o favorito";
+    console.error("Falha ao atualizar favorito:", resultado.error);
+    return;
+  }
+
+  await carregarFavoritos();
+  renderizarDetalhe(receita);
+}
+
+listaFavoritosEl?.addEventListener("click", async (evento) => {
+  const botao = evento.target.closest("button[data-meal-id]");
+  if (!botao) return;
+  const receita = await buscarPorId(botao.dataset.mealId);
+  if (!receita) return;
+  if (botao.classList.contains("remover-favorito")) {
+    await alternarFavorito(receita, botao);
+    return;
+  }
+  renderizarDetalhe(receita);
+});
+
 // Renderização de elementos
 function definirCarregando(carregando, mensagem = "") {
   botaoBuscar.disabled = carregando;
@@ -193,6 +280,9 @@ function renderizarDetalhe(receita) {
           ${receita.strCategory ? `<span class="etiqueta">${receita.strCategory}</span>` : ""}
           ${receita.strArea ? `<span class="etiqueta origem">${receita.strArea}</span>` : ""}
         </div>
+        <button type="button" class="botao-favorito" id="botao-favorito">
+          ${idsFavoritos.has(receita.idMeal) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"}
+        </button>
 
         <h3>Ingredientes</h3>
         <ul class="lista-ingredientes">
@@ -215,6 +305,9 @@ function renderizarDetalhe(receita) {
       </div>
     </article>
   `;
+  document.getElementById("botao-favorito").addEventListener("click", (evento) => {
+    alternarFavorito(receita, evento.currentTarget);
+  });
 }
 
 function mostrarMensagem(texto, ehErro = false) {
@@ -280,3 +373,12 @@ form.addEventListener("submit", (evento) => {
 });
 
 botaoAleatorio.addEventListener("click", executarAleatorio);
+
+clienteSupabase.auth.getSession().then(async ({ data, error }) => {
+  if (error) {
+    statusFavoritosEl.textContent = "Não foi possível verificar sua sessão.";
+    return;
+  }
+  usuarioAtual = data.session?.user || null;
+  await carregarFavoritos();
+});
