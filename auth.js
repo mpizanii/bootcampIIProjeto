@@ -1,7 +1,10 @@
 (function () {
-  const SUPABASE_URL = "https://mkvgrqpytfynaevqkhhz.supabase.co";
+  const ambiente =
+    typeof process !== "undefined" && process.env ? process.env : {};
+  const SUPABASE_URL =
+    ambiente.SUPABASE_URL;
   const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdmdycXB5dGZ5bmFldnFraGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4NDA2MjcsImV4cCI6MjEwNzQxNjYyN30.OkVHV7fUWf2QV0fsFzcfO5cXfZZgcz1EcEuZzHjeEzc";
+    ambiente.SUPABASE_ANON_KEY;
   const clienteSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const formAuth = document.getElementById("form-auth");
 
