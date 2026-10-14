@@ -34,6 +34,18 @@ serão implementados em uma próxima etapa.
 3. A página inicial (`index.html`) redireciona para `auth.html`, a tela de login e cadastro.
 4. Após autenticar, o usuário é encaminhado para `app.html`, onde está o buscador.
 
+## `.dockerignore`
+
+O arquivo `.dockerignore` impede que arquivos desnecessários, como `.git`,
+`README.md`, `node_modules`, arquivos de log, configurações locais e rascunhos,
+sejam enviados para o Docker durante o build.
+
+Isso deixa o processo mais rápido porque o Docker precisa transferir e analisar
+menos arquivos. Também reduz o tamanho do contexto e evita que informações
+locais ou arquivos de desenvolvimento sejam incluídos acidentalmente na
+imagem. O `Dockerfile` copia somente os arquivos HTML, JavaScript e CSS
+necessários para executar a aplicação.
+
 # Links
 1. Repositorio Público: https://github.com/mpizanii/bootcampIIProjeto
 2. Github Pages: https://mpizanii.github.io/bootcampIIProjeto/
