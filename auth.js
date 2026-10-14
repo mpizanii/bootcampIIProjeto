@@ -1,11 +1,27 @@
 (function () {
-  const ambiente =
-    typeof process !== "undefined" && process.env ? process.env : {};
-  const SUPABASE_URL =
-    ambiente.SUPABASE_URL;
-  const SUPABASE_ANON_KEY =
-    ambiente.SUPABASE_ANON_KEY;
-  const clienteSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const configuracao = window.APP_CONFIG;
+  if (
+    !configuracao ||
+    !configuracao.SUPABASE_URL ||
+    !configuracao.SUPABASE_ANON_KEY ||
+    configuracao.SUPABASE_ANON_KEY === "******"
+  ) {
+    console.error("Configuração do Supabase ausente ou inválida.");
+    document.body.setAttribute("data-configuracao-invalida", "true");
+    const authStatus = document.getElementById("auth-status");
+    if (authStatus) {
+      authStatus.textContent =
+        "A autenticação está indisponível por falta de configuração.";
+      authStatus.className = "auth-status erro";
+    }
+    return;
+  }
+
+  const clienteSupabase = window.supabase.createClient(
+    configuracao.SUPABASE_URL,
+    configuracao.SUPABASE_ANON_KEY
+  );
+  window.clienteSupabase = clienteSupabase;
   const formAuth = document.getElementById("form-auth");
 
   if (formAuth) {
