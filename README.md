@@ -24,7 +24,10 @@ prato aleatório.
 - Redirecionamento entre as telas de autenticação e aplicação conforme o estado da sessão
 - Adição e remoção de receitas favoritas
 - Listagem de favoritos do usuário autenticado
+- Criação e edição de notas pessoais somente em receitas favoritas
+- Exclusão automática da nota ao desfavoritar a receita
 - Persistência dos favoritos no Supabase/PostgreSQL
+- Persistência das notas pessoais no Supabase/PostgreSQL
 - Isolamento dos favoritos por usuário com filtros de usuário e políticas RLS
 - Interface responsiva e mensagens de status para carregamento, erros e operações de autenticação
 - Dockerização da aplicação com Nginx
@@ -62,16 +65,12 @@ Depois, acesse http://localhost:8080. As tags disponíveis no Docker Hub são
 
 ## Persistência de dados
 
-A persistência utiliza o **Supabase (PostgreSQL)**. A tabela `favorites` armazena
-os favoritos de cada usuário autenticado, com os campos `id`, `user_id`,
-`meal_id`, `meal_name`, `meal_thumb` e `created_at`. São salvos o identificador
-do usuário, o identificador e o nome da receita e a URL da imagem, além da data
-de criação do registro. O frontend consulta, insere e remove esses registros
-por meio da API do Supabase; a aplicação não mantém esses dados dentro do
-container, portanto eles continuam disponíveis mesmo quando os containers são
-recriados. O acesso deve ser protegido por RLS, permitindo que cada usuário
-consulte e altere somente os próprios favoritos. Senhas não são armazenadas
-pela aplicação: a autenticação é gerenciada pelo Supabase Auth.
+A persistência utiliza o **Supabase (PostgreSQL)**. A tabela `favorites` armazena os favoritos de cada usuário autenticado, com os campos `id`, `user_id`, `meal_id`, `meal_name`, `meal_thumb` e `created_at`. A tabela `notes` armazena uma nota por usuário e receita, com os campos `id`, `user_id`, `meal_id`, `content` e `updated_at`.
+
+O frontend exibe o editor de nota somente quando a receita está favoritada e há uma sessão autenticada. O salvamento usa `upsert` pela combinação `user_id`/`meal_id`, preservando uma única nota por receita. Ao desfavoritar, a aplicação exclui primeiro o registro correspondente em `notes` e depois remove o favorito; assim, uma nota nunca permanece associada a uma receita que deixou de ser favorita. Os dados continuam disponíveis mesmo quando os containers são
+recriados, pois são consultados e alterados pela API do Supabase.
+
+O acesso é protegido por RLS, permitindo que cada usuário consulte e altere somente os próprios favoritos e próprias notas. Senhas não são armazenadas pela aplicação: a autenticação é gerenciada pelo Supabase Auth.
 
 ## `.dockerignore`
 
