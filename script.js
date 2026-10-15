@@ -14,6 +14,8 @@ const statusFavoritosEl = document.getElementById("status-favoritos");
 const clienteSupabase = window.clienteSupabase;
 let usuarioAtual = null;
 let idsFavoritos = new Set();
+const notasFavoritos = new Map();
+const idsNotasCarregadas = new Set();
 
 if (!clienteSupabase && statusFavoritosEl) {
   statusFavoritosEl.textContent =
@@ -60,9 +62,31 @@ async function carregarFavoritos() {
   }
 
   idsFavoritos = new Set(data.map((favorito) => favorito.meal_id));
-  statusFavoritosEl.textContent = data.length
-    ? `${data.length} receita(s) favorita(s).`
-    : "Você ainda não favoritou nenhuma receita.";
+  notasFavoritos.clear();
+  idsNotasCarregadas.clear();
+  let erroAoCarregarNotas = false;
+
+  if (data.length) {
+    const { data: notas, error: erroNotas } = await clienteSupabase
+      .from("notes")
+      .select("meal_id, content")
+      .eq("user_id", usuarioAtual.id)
+      .in("meal_id", data.map((favorito) => favorito.meal_id));
+
+    if (erroNotas) {
+      erroAoCarregarNotas = true;
+      console.error("Falha ao carregar notas:", erroNotas);
+    } else {
+      notas.forEach((nota) => notasFavoritos.set(nota.meal_id, nota.content || ""));
+      notas.forEach((nota) => idsNotasCarregadas.add(nota.meal_id));
+    }
+  }
+
+  statusFavoritosEl.textContent = erroAoCarregarNotas
+    ? "Favoritos carregados, mas não foi possível carregar as notas."
+    : data.length
+      ? `${data.length} receita(s) favorita(s).`
+      : "Você ainda não favoritou nenhuma receita.";
   listaFavoritosEl.innerHTML = data
     .map(
       (favorito) => `
@@ -86,18 +110,35 @@ async function alternarFavorito(receita, botao) {
 
   botao.disabled = true;
   const favorito = idsFavoritos.has(receita.idMeal);
-  const resultado = favorito
-    ? await clienteSupabase
-        .from("favorites")
-        .delete()
-        .eq("user_id", usuarioAtual.id)
-        .eq("meal_id", receita.idMeal)
-    : await clienteSupabase.from("favorites").insert({
-        user_id: usuarioAtual.id,
-        meal_id: receita.idMeal,
-        meal_name: receita.strMeal,
-        meal_thumb: receita.strMealThumb,
-      });
+  let resultado;
+
+  if (favorito) {
+    const resultadoNota = await clienteSupabase
+      .from("notes")
+      .delete()
+      .eq("user_id", usuarioAtual.id)
+      .eq("meal_id", receita.idMeal);
+
+    if (resultadoNota.error) {
+      botao.disabled = false;
+      botao.textContent = "Não foi possível excluir a nota";
+      console.error("Falha ao excluir nota:", resultadoNota.error);
+      return;
+    }
+
+    resultado = await clienteSupabase
+      .from("favorites")
+      .delete()
+      .eq("user_id", usuarioAtual.id)
+      .eq("meal_id", receita.idMeal);
+  } else {
+    resultado = await clienteSupabase.from("favorites").insert({
+      user_id: usuarioAtual.id,
+      meal_id: receita.idMeal,
+      meal_name: receita.strMeal,
+      meal_thumb: receita.strMealThumb,
+    });
+  }
 
   botao.disabled = false;
   if (resultado.error) {
@@ -106,8 +147,74 @@ async function alternarFavorito(receita, botao) {
     return;
   }
 
+  if (favorito) {
+    notasFavoritos.delete(receita.idMeal);
+    idsNotasCarregadas.delete(receita.idMeal);
+  }
   await carregarFavoritos();
   renderizarDetalhe(receita);
+}
+
+async function carregarNota(mealId) {
+  if (
+    !usuarioAtual ||
+    !idsFavoritos.has(mealId) ||
+    idsNotasCarregadas.has(mealId)
+  ) {
+    return;
+  }
+
+  const { data, error } = await clienteSupabase
+    .from("notes")
+    .select("content")
+    .eq("user_id", usuarioAtual.id)
+    .eq("meal_id", mealId)
+    .maybeSingle();
+
+  if (error) {
+    const statusNota = document.querySelector(
+      `.form-nota[data-meal-id="${mealId}"] .status-nota`
+    );
+    if (statusNota) statusNota.textContent = "Não foi possível carregar a nota.";
+    console.error("Falha ao carregar nota:", error);
+    return;
+  }
+
+  notasFavoritos.set(mealId, data?.content || "");
+  idsNotasCarregadas.add(mealId);
+  const campoNota = document.querySelector(
+    `.form-nota[data-meal-id="${mealId}"] textarea`
+  );
+  if (campoNota) campoNota.value = data?.content || "";
+}
+
+async function salvarNota(mealId, campoNota, botao) {
+  if (!usuarioAtual || !idsFavoritos.has(mealId)) return;
+
+  botao.disabled = true;
+  const resultado = await clienteSupabase.from("notes").upsert(
+    {
+      user_id: usuarioAtual.id,
+      meal_id: mealId,
+      content: campoNota.value,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,meal_id" }
+  );
+  botao.disabled = false;
+
+  const statusNota = document.querySelector(
+    `.form-nota[data-meal-id="${mealId}"] .status-nota`
+  );
+  if (resultado.error) {
+    if (statusNota) statusNota.textContent = "Não foi possível salvar a nota.";
+    console.error("Falha ao salvar nota:", resultado.error);
+    return;
+  }
+
+  notasFavoritos.set(mealId, campoNota.value);
+  idsNotasCarregadas.add(mealId);
+  if (statusNota) statusNota.textContent = "Nota salva.";
 }
 
 listaFavoritosEl?.addEventListener("click", async (evento) => {
@@ -180,6 +287,19 @@ function renderizarDetalhe(receita) {
           ${idsFavoritos.has(receita.idMeal) ? "★ Remover dos favoritos" : "☆ Adicionar aos favoritos"}
         </button>
 
+        ${
+          idsFavoritos.has(receita.idMeal) && usuarioAtual
+            ? `
+              <form class="form-nota" data-meal-id="${receita.idMeal}">
+                <label for="nota-${receita.idMeal}">Minha nota</label>
+                <textarea id="nota-${receita.idMeal}" rows="4" maxlength="2000" placeholder="Escreva uma observação sobre esta receita."></textarea>
+                <button type="submit" class="botao-salvar-nota">Salvar nota</button>
+                <span class="status-nota" role="status" aria-live="polite"></span>
+              </form>
+            `
+            : ""
+        }
+
         <h3>Ingredientes</h3>
         <ul class="lista-ingredientes">
           ${ingredientes
@@ -204,6 +324,19 @@ function renderizarDetalhe(receita) {
   document.getElementById("botao-favorito").addEventListener("click", (evento) => {
     alternarFavorito(receita, evento.currentTarget);
   });
+
+  const formNota = document.querySelector(
+    `.form-nota[data-meal-id="${receita.idMeal}"]`
+  );
+  if (formNota) {
+    const campoNota = formNota.querySelector("textarea");
+    campoNota.value = notasFavoritos.get(receita.idMeal) || "";
+    formNota.addEventListener("submit", (evento) => {
+      evento.preventDefault();
+      salvarNota(receita.idMeal, campoNota, formNota.querySelector("button"));
+    });
+    carregarNota(receita.idMeal);
+  }
 }
 
 function mostrarMensagem(texto, ehErro = false) {
